@@ -53,7 +53,8 @@ namespace test_api.Controllers
 
 				if (!MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
 				{
-					return BadRequest($"Expected a multipart request, but got {Request.ContentType}");
+					string request_contentType = Request.ContentType;
+					return BadRequest($"Expected a multipart request, but got {request_contentType}");
 				}
 				var formAccumulator = new KeyValueAccumulator();
 				string targetFilePath = null;
@@ -74,7 +75,7 @@ namespace test_api.Controllers
 						if (MultipartRequestHelper.HasFileContentDisposition(contentDisposition))
 						{
 							//targetFilePath = Path.GetTempFileName();
-							targetFilePath = "D:\\TempFiles\\file.jpg";
+							targetFilePath = "D:\\TempFiles2\\" + contentDisposition.FileName.Value;
 							using (var targetStream = System.IO.File.Create(targetFilePath))
 							{
 								await section.Body.CopyToAsync(targetStream);
@@ -82,7 +83,8 @@ namespace test_api.Controllers
 								//_logger.LogInformation($"Copied the uploaded file '{targetFilePath}'");
 							}
 						}
-						else if (MultipartRequestHelper.HasFormDataContentDisposition(contentDisposition))
+						else
+						if (MultipartRequestHelper.HasFormDataContentDisposition(contentDisposition))
 						{
 							// Content-Disposition: form-data; name="key"
 							//
@@ -114,10 +116,11 @@ namespace test_api.Controllers
 							}
 						}
 					}
+					section = await reader.ReadNextSectionAsync();
+
 				}
 				// Drains any remaining section body that has not been consumed and
 				// reads the headers for the next section.
-				section = await reader.ReadNextSectionAsync();
 				var formValueProvider = new FormValueProvider(
 			BindingSource.Form,
 			new FormCollection(formAccumulator.GetResults()),
