@@ -38,6 +38,9 @@ namespace test_api
 			}
 
 			app.UseMvc();
+
+			app.UseFileServer(enableDirectoryBrowsing: true);
+
 		}
 	}
 	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]

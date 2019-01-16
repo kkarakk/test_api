@@ -25,7 +25,7 @@ namespace test_api.Controllers
 		// POST api/values
 		[HttpPost("UploadFiles")]
 		[DisableFormValueModelBinding]
-		public async Task<IActionResult> Post()
+		public async Task<IActionResult> Post(string IMEI, string section, string guid, string photoguid, string ukey)
 		{
 			////long size = files.Sum(f => f.Length);
 
@@ -64,21 +64,23 @@ namespace test_api.Controllers
 					_defaultFormOptions.MultipartBoundaryLengthLimit);
 				var reader = new MultipartReader(boundary, HttpContext.Request.Body);
 
-				var section = await reader.ReadNextSectionAsync();
-				while (section != null)
+				var section1 = await reader.ReadNextSectionAsync();
+				while (section1 != null)
 				{
 					Microsoft.Net.Http.Headers.ContentDispositionHeaderValue contentDisposition;
-					var hasContentDispositionHeader = Microsoft.Net.Http.Headers.ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out contentDisposition);
+					var hasContentDispositionHeader = Microsoft.Net.Http.Headers.ContentDispositionHeaderValue.TryParse(section1.ContentDisposition, out contentDisposition);
 
 					if (hasContentDispositionHeader)
 					{
 						if (MultipartRequestHelper.HasFileContentDisposition(contentDisposition))
 						{
+							Random r = new Random();
+							int n = r.Next();
 							//targetFilePath = Path.GetTempFileName();
-							targetFilePath = "D:\\TempFiles2\\" + contentDisposition.FileName.Value;
+							targetFilePath = "D:\\TempFiles2\\" + n.ToString() + "_" + contentDisposition.FileName.Value;
 							using (var targetStream = System.IO.File.Create(targetFilePath))
 							{
-								await section.Body.CopyToAsync(targetStream);
+								await section1.Body.CopyToAsync(targetStream);
 
 								//_logger.LogInformation($"Copied the uploaded file '{targetFilePath}'");
 							}
@@ -93,9 +95,9 @@ namespace test_api.Controllers
 							// Do not limit the key name length here because the 
 							// multipart headers length limit is already in effect.
 							var key = HeaderUtilities.RemoveQuotes(contentDisposition.Name);
-							var encoding = GetEncoding(section);
+							var encoding = GetEncoding(section1);
 							using (var streamReader = new StreamReader(
-								section.Body,
+								section1.Body,
 								encoding,
 								detectEncodingFromByteOrderMarks: true,
 								bufferSize: 1024,
@@ -116,7 +118,7 @@ namespace test_api.Controllers
 							}
 						}
 					}
-					section = await reader.ReadNextSectionAsync();
+					section1 = await reader.ReadNextSectionAsync();
 
 				}
 				// Drains any remaining section body that has not been consumed and
